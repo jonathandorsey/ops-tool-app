@@ -1,4 +1,4 @@
-import React, { useState, useEffects } from 'react';
+import React, { useState } from 'react';
 import { Plus, Minus, X, AlertCircle } from 'lucide-react';
 
 const App = () => {
