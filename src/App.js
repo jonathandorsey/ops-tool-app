@@ -1,0 +1,237 @@
+import React, { useState, useEffect } from 'react';
+import { Plus, Minus, X, AlertCircle } from 'lucide-react';
+
+const App = () => {
+  const [departments, setDepartments] = useState([]);
+  const [currentDept, setCurrentDept] = useState(null);
+  const [maps, setMaps] = useState([]);
+  const [activeMap, setActiveMap] = useState(null);
+  const [zoom, setZoom] = useState(1);
+  
+  // Modal States
+  const [modalType, setModalType] = useState(null); // 'frustration' or 'metric'
+  const [selectedMajor, setSelectedMajor] = useState("");
+  const [selectedSub, setSelectedSub] = useState("");
+  const [tempItems, setTempItems] = useState([]);
+  const [newItemInput, setNewItemInput] = useState("");
+  const [error, setError] = useState("");
+
+  // Logic to add a department
+  const addDept = () => {
+    const name = prompt("Department Name:");
+    if (name) setDepartments([...departments, { id: Date.now(), name }]);
+  };
+
+  // Logic to create a map
+  const createMap = () => {
+    if (!currentDept) return alert("Select a department first");
+    const title = prompt("Process Map Name:");
+    const newMap = {
+      id: Date.now(),
+      deptId: currentDept.id,
+      title,
+      steps: [
+        { 
+          id: 'm1', 
+          text: 'Initial Major Step', 
+          subSteps: [{ id: 's1', text: 'Sub Step 1', frustrations: [], metrics: [] }] 
+        }
+      ]
+    };
+    setMaps([...maps, newMap]);
+    setActiveMap(newMap);
+  };
+
+  // Handle Modal Actions
+  const openModal = (type) => {
+    setModalType(type);
+    setSelectedMajor("");
+    setSelectedSub("");
+    setTempItems([]);
+  };
+
+  const handleSubClickAttempt = () => {
+    if (!selectedMajor) setError("You must first select a major process step");
+  };
+
+  const addItem = () => {
+    if (!newItemInput.trim()) return;
+    if (tempItems.includes(newItemInput)) return alert("Duplicate entry!");
+    setTempItems([...tempItems, newItemInput]);
+    setNewItemInput("");
+  };
+
+  const saveToMap = () => {
+    const updatedSteps = activeMap.steps.map(m => {
+      if (m.id === selectedMajor) {
+        return {
+          ...m,
+          subSteps: m.subSteps.map(s => {
+            if (s.id === selectedSub) {
+              const field = modalType === 'frustration' ? 'frustrations' : 'metrics';
+              return { ...s, [field]: [...s[field], ...tempItems] };
+            }
+            return s;
+          })
+        };
+      }
+      return m;
+    });
+    setActiveMap({ ...activeMap, steps: updatedSteps });
+    setModalType(null);
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100 font-sans overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-64 bg-slate-800 text-white p-4">
+        <h2 className="text-xl font-bold mb-4">OpsMapper Pro</h2>
+        <button onClick={addDept} className="w-full bg-blue-600 p-2 rounded mb-4">+ Add Dept</button>
+        <div className="space-y-2">
+          {departments.map(d => (
+            <div key={d.id} onClick={() => setCurrentDept(d)} className={`p-2 cursor-pointer rounded ${currentDept?.id === d.id ? 'bg-blue-500' : 'hover:bg-slate-700'}`}>
+              {d.name}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Area */}
+      <div className="flex-1 flex flex-col">
+        <header className="bg-white border-b p-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-lg font-bold">{activeMap ? activeMap.title : "Select a Map"}</h1>
+            <p className="text-sm text-gray-500">{currentDept?.name}</p>
+          </div>
+          <div className="flex gap-2">
+            {currentDept && <button onClick={createMap} className="bg-green-600 text-white px-4 py-2 rounded">New Map</button>}
+            <button onClick={() => setZoom(z => Math.min(z + 0.1, 2))} className="p-2 border rounded"><Plus size={16}/></button>
+            <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))} className="p-2 border rounded"><Minus size={16}/></button>
+          </div>
+        </header>
+
+        {activeMap && (
+          <div className="p-4 border-b flex gap-4 bg-white">
+            <button onClick={() => openModal('frustration')} className="bg-red-500 text-white px-4 py-1 rounded text-sm">Assign Frustration</button>
+            <button onClick={() => openModal('metric')} className="bg-blue-500 text-white px-4 py-1 rounded text-sm">Assign Metric</button>
+          </div>
+        )}
+
+        {/* Canvas */}
+        <div className="flex-1 overflow-auto p-10 bg-gray-200">
+          <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s' }}>
+            {activeMap?.steps.map((major, i) => (
+              <div key={major.id} className="flex items-start mb-8">
+                {/* Major Flow Step */}
+                <div className="w-48 h-24 bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center font-bold text-center p-2 shadow-md">
+                  {major.text}
+                </div>
+                
+                {/* Arrow Connector */}
+                <div className="w-8 h-0.5 bg-gray-400 mt-12"></div>
+
+                {/* Sub Flow Steps */}
+                <div className="flex gap-4">
+                  {major.subSteps.map(sub => (
+                    <div key={sub.id} className="relative w-40 h-24 bg-yellow-100 border border-yellow-300 flex items-center justify-center text-sm text-center p-2 group">
+                      {sub.text}
+                      
+                      {/* Interaction Dots */}
+                      <div className="absolute -top-2 -right-2 flex flex-col gap-1">
+                        {sub.frustrations.length > 0 && (
+                          <div 
+                            title="Frustrations"
+                            onClick={() => alert(`Frustrations: \n${sub.frustrations.join('\n')}`)}
+                            className="w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition-transform"
+                          >
+                            {sub.frustrations.length}
+                          </div>
+                        )}
+                        {sub.metrics.length > 0 && (
+                          <div 
+                            title="Metrics"
+                            onClick={() => alert(`Metrics: \n${sub.metrics.join('\n')}`)}
+                            className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition-transform"
+                          >
+                            {sub.metrics.length}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {modalType && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-[500px]">
+            <h2 className="text-xl font-bold mb-4 capitalize">Assign {modalType}</h2>
+            
+            <label className="block text-sm font-medium mb-1">Major Step</label>
+            <select 
+              className="w-full border p-2 mb-4" 
+              value={selectedMajor}
+              onChange={(e) => setSelectedMajor(e.target.value)}
+            >
+              <option value="">Select Major Step</option>
+              {activeMap.steps.map(s => <option key={s.id} value={s.id}>{s.text}</option>)}
+            </select>
+
+            <label className="block text-sm font-medium mb-1">Sub Step</label>
+            <div onClick={handleSubClickAttempt}>
+              <select 
+                disabled={!selectedMajor}
+                className="w-full border p-2 mb-4 disabled:bg-gray-100"
+                value={selectedSub}
+                onChange={(e) => setSelectedSub(e.target.value)}
+              >
+                <option value="">Select Sub Step</option>
+                {activeMap.steps.find(s => s.id === selectedMajor)?.subSteps.map(ss => (
+                  <option key={ss.id} value={ss.id}>{ss.text}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="border-t pt-4">
+              <input 
+                className="border p-2 w-full mb-2" 
+                placeholder={`Add new ${modalType}...`}
+                value={newItemInput}
+                onChange={(e) => setNewItemInput(e.target.value)}
+              />
+              <button onClick={addItem} className="bg-slate-800 text-white px-4 py-2 rounded w-full">Submit</button>
+            </div>
+
+            <div className="mt-4 max-h-32 overflow-auto">
+              <p className="text-xs font-bold text-gray-500 uppercase">Current List:</p>
+              {tempItems.map((item, idx) => (
+                <div key={idx} className="text-sm p-1 border-b">{item}</div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button onClick={() => setModalType(null)} className="px-4 py-2 border rounded">Close</button>
+              <button onClick={saveToMap} className="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Message Toast */}
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center gap-3">
+          <AlertCircle size={18} />
+          <span>{error}</span>
+          <button onClick={() => setError("")}><X size={18}/></button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;
