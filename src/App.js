@@ -118,53 +118,65 @@ const App = () => {
         )}
 
         {/* Canvas */}
-        <div className="flex-1 overflow-auto p-10 bg-gray-200">
-          <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s' }}>
-            {activeMap?.steps.map((major, i) => (
-              <div key={major.id} className="flex items-start mb-8">
-                {/* Major Flow Step */}
-                <div className="w-48 h-24 bg-yellow-400 border-2 border-yellow-600 flex items-center justify-center font-bold text-center p-2 shadow-md">
-                  {major.text}
-                </div>
-                
-                {/* Arrow Connector */}
-                <div className="w-8 h-0.5 bg-gray-400 mt-12"></div>
-
-                {/* Sub Flow Steps */}
-                <div className="flex gap-4">
-                  {major.subSteps.map(sub => (
-                    <div key={sub.id} className="relative w-40 h-24 bg-yellow-100 border border-yellow-300 flex items-center justify-center text-sm text-center p-2 group">
-                      {sub.text}
-                      
-                      {/* Interaction Dots */}
-                      <div className="absolute -top-2 -right-2 flex flex-col gap-1">
-                        {sub.frustrations.length > 0 && (
-                          <div 
-                            title="Frustrations"
-                            onClick={() => alert(`Frustrations: \n${sub.frustrations.join('\n')}`)}
-                            className="w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition-transform"
-                          >
-                            {sub.frustrations.length}
-                          </div>
-                        )}
-                        {sub.metrics.length > 0 && (
-                          <div 
-                            title="Metrics"
-                            onClick={() => alert(`Metrics: \n${sub.metrics.join('\n')}`)}
-                            className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs cursor-pointer hover:scale-110 transition-transform"
-                          >
-                            {sub.metrics.length}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+<div className="flex-1 overflow-auto p-12 bg-slate-200 shadow-inner">
+  <div style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', transition: 'transform 0.2s' }} className="flex flex-col gap-12">
+    {activeMap?.steps.map((major) => (
+      <div key={major.id} className="flex items-start">
+        
+        {/* Major Flow Step (The Main Sticky Note) */}
+        <div className="relative group">
+          <div className="w-52 h-52 bg-yellow-300 shadow-xl border-t-4 border-yellow-400 p-6 flex items-center justify-center text-center transform hover:-rotate-1 transition-transform cursor-grab active:cursor-grabbing">
+            <span className="font-bold text-slate-800 text-lg leading-tight uppercase tracking-wide">
+              {major.text}
+            </span>
+            {/* Thumbtack effect */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 rounded-full opacity-50"></div>
           </div>
+          
+          {/* Connector Line to Sub-flows */}
+          <div className="absolute top-1/2 -right-8 w-8 h-1 bg-slate-400"></div>
+        </div>
+
+        {/* Sub Flow Container */}
+        <div className="ml-8 flex flex-wrap gap-6 pt-4">
+          {major.subSteps.map((sub, idx) => (
+            <div 
+              key={sub.id} 
+              className={`relative w-44 h-44 bg-yellow-50 shadow-lg p-4 flex items-center justify-center text-center border-b-2 border-yellow-200 
+                ${idx % 2 === 0 ? 'rotate-1' : '-rotate-1'} hover:rotate-0 transition-transform`}
+            >
+              <p className="text-sm font-medium text-slate-700 leading-snug">
+                {sub.text}
+              </p>
+
+              {/* Status Dots (Frustrations & Metrics) */}
+              <div className="absolute -top-3 -right-3 flex flex-col gap-2">
+                {sub.frustrations.length > 0 && (
+                  <button 
+                    onClick={() => alert(`Frustrations: \n• ${sub.frustrations.join('\n• ')}`)}
+                    className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md hover:scale-110 transition-transform border-2 border-white group"
+                  >
+                    {sub.frustrations.length}
+                    <span className="hidden group-hover:block absolute right-10 bg-black text-white px-2 py-1 rounded">Frustrations</span>
+                  </button>
+                )}
+                {sub.metrics.length > 0 && (
+                  <button 
+                    onClick={() => alert(`Metrics: \n• ${sub.metrics.join('\n• ')}`)}
+                    className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md hover:scale-110 transition-transform border-2 border-white group"
+                  >
+                    {sub.metrics.length}
+                    <span className="hidden group-hover:block absolute right-10 bg-black text-white px-2 py-1 rounded">Metrics</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+    ))}
+  </div>
+</div>
 
       {/* Modals */}
       {modalType && (
