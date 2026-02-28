@@ -83,7 +83,20 @@ const App = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans overflow-hidden">
-      {/* Sidebar */}
+      <div className="flex-1 flex flex-col">
+        {/* Global Header */}
+        <header className="bg-[#094780] h-16 flex items-center justify-between px-8 shadow-lg z-50">
+          <div className="flex items-center gap-3">
+            {/* Simple Icon placeholder */}
+            <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-white rounded-sm"></div>
+            </div>
+            <h1 className="text-white text-xl font-bold tracking-tight">
+              Process Mapping Tool
+            </h1>
+          </div>  
+  
+  {/* Sidebar */}
       <div className="w-64 bg-slate-800 text-white p-4">
         <h2 className="text-xl font-bold mb-4">OpsMapper Pro</h2>
         <button onClick={addDept} className="w-full bg-blue-600 p-2 rounded mb-4">+ Add Dept</button>
@@ -97,18 +110,15 @@ const App = () => {
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col">
-        <header className="bg-white border-b p-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-lg font-bold">{activeMap ? activeMap.title : "Select a Map"}</h1>
-            <p className="text-sm text-gray-500">{currentDept?.name}</p>
-          </div>
-          <div className="flex gap-2">
-            {currentDept && <button onClick={createMap} className="bg-green-600 text-white px-4 py-2 rounded">New Map</button>}
-            <button onClick={() => setZoom(z => Math.min(z + 0.1, 2))} className="p-2 border rounded"><Plus size={16}/></button>
-            <button onClick={() => setZoom(z => Math.max(z - 0.1, 0.5))} className="p-2 border rounded"><Minus size={16}/></button>
-          </div>
-        </header>
+  <div className="flex items-center gap-4">
+    <button 
+      onClick={() => alert("Account settings coming soon!")}
+      className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-md border border-white/30 transition-colors text-sm font-medium"
+    >
+      Account
+    </button>
+  </div>
+</header>
 
         {activeMap && (
           <div className="p-4 border-b flex gap-4 bg-white">
